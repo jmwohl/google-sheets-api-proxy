@@ -1,0 +1,39 @@
+{
+  "name": "google-sheets-api-proxy",
+  "version": "1.0.0",
+  "description": "A generic API proxy for adding entries to Google Sheets",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/google-sheets-api-proxy.git"
+  },
+  "keywords": [
+    "google-sheets",
+    "api",
+    "proxy",
+    "rest",
+    "nodejs"
+  ],
+  "scripts": {
+    "setup": "node setup.js",
+    "test": "DEV_MODE=true node api-test.js",
+    "test:prod": "NODE_ENV=production node api-test.js",
+    "dev": "DEV_MODE=true node ./index.js",
+    "dev:watch": "DEV_MODE=true nodemon ./index.js",
+    "prod": "NODE_ENV=production node ./index.js",
+    "start": "forever start -o ./sheets-proxy.log ./index.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.11.0",
+    "crypto": "^1.0.1",
+    "dotenv": "^16.4.5",
+    "googleapis": "^144.0.0",
+    "restify": "^11.1.0",
+    "forever": "^4.0.3"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
+}
