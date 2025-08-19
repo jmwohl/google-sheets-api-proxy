@@ -19,15 +19,15 @@ async function initializeGoogleSheets() {
         };
 
         const jwtClient = new google.auth.JWT(
-            credentials.client_email, 
-            null, 
-            credentials.private_key, 
+            credentials.client_email,
+            null,
+            credentials.private_key,
             ['https://www.googleapis.com/auth/spreadsheets']
         );
 
         await jwtClient.authorize();
         const sheets = google.sheets({ version: 'v4', auth: jwtClient });
-        
+
         return sheets;
     } catch (error) {
         console.error('Failed to initialize Google Sheets service:', error);
@@ -59,7 +59,7 @@ exports.handler = async (event, context) => {
     try {
         const sheets = await initializeGoogleSheets();
         const body = JSON.parse(event.body);
-        
+
         const { spreadsheetId, sheetName, data, options = {} } = body;
 
         if (!spreadsheetId || !sheetName || !data) {
@@ -82,7 +82,10 @@ exports.handler = async (event, context) => {
 
         // Add timestamp if requested
         if (includeTimestamp) {
-            const timestamp = new Date().toISOString();
+            // Use a human-readable but sortable timestamp: "YYYY-MM-DD HH:mm:ss"
+            const now = new Date();
+            const pad = n => n.toString().padStart(2, '0');
+            const timestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
             rowData.splice(timestampColumn, 0, timestamp);
         }
 
@@ -97,7 +100,7 @@ exports.handler = async (event, context) => {
         };
 
         const response = await sheets.spreadsheets.values.append(request);
-        
+
         return {
             statusCode: 200,
             headers,
