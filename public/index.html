@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Google Sheets API Proxy</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem;
+            line-height: 1.6;
+        }
+        .endpoint {
+            background: #f5f5f5;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            border-left: 4px solid #007acc;
+        }
+        .method {
+            background: #007acc;
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        .method.post { background: #28a745; }
+        .method.get { background: #007acc; }
+        code {
+            background: #f8f9fa;
+            padding: 0.2rem 0.4rem;
+            border-radius: 3px;
+            font-family: 'Monaco', 'Consolas', monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔗 Google Sheets API Proxy</h1>
+    <p>A generic REST API that serves as an intermediary for adding and retrieving entries from Google Sheets.</p>
+    
+    <h2>Available Endpoints</h2>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> <code>/api/health</code></h3>
+        <p>Health check endpoint to verify the service is running.</p>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method post">POST</span> <code>/api/entries</code></h3>
+        <p>Add entries to a Google Sheet.</p>
+        <p><strong>Required parameters:</strong></p>
+        <ul>
+            <li><code>spreadsheetId</code> - The Google Spreadsheet ID</li>
+            <li><code>sheetName</code> - The name of the sheet to write to</li>
+            <li><code>data</code> - Array of values to add</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method get">GET</span> <code>/api/entries</code></h3>
+        <p>Retrieve entries from a Google Sheet.</p>
+        <p><strong>Required parameters:</strong></p>
+        <ul>
+            <li><code>spreadsheetId</code> - The Google Spreadsheet ID</li>
+            <li><code>sheetName</code> - The name of the sheet to read from</li>
+            <li><code>range</code> (optional) - Specific range to read</li>
+        </ul>
+    </div>
+    
+    <div class="endpoint">
+        <h3><span class="method post">POST</span> <code>/api/sheets</code></h3>
+        <p>Create a new sheet within an existing spreadsheet.</p>
+        <p><strong>Required parameters:</strong></p>
+        <ul>
+            <li><code>spreadsheetId</code> - The Google Spreadsheet ID</li>
+            <li><code>sheetName</code> - The name for the new sheet</li>
+        </ul>
+    </div>
+    
+    <h2>Usage Example</h2>
+    <p>Replace <code>your-netlify-url.netlify.app</code> with your actual Netlify deployment URL:</p>
+    <pre><code>curl -X POST https://your-netlify-url.netlify.app/api/entries \
+  -H "Content-Type: application/json" \
+  -d '{
+    "spreadsheetId": "your-spreadsheet-id",
+    "sheetName": "Sheet1",
+    "data": ["Value1", "Value2", "Value3"]
+  }'</code></pre>
+    
+    <h2>Documentation</h2>
+    <p>For detailed setup instructions and API documentation, visit the <a href="https://github.com/jmwohl/google-sheets-api-proxy" target="_blank">GitHub repository</a>.</p>
+</body>
+</html>

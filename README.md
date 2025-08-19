@@ -286,3 +286,17 @@ Error responses include details:
 ## License
 
 ISC
+
+## Deployment Options
+
+### Local/Server Deployment
+For traditional server deployment, see the main setup instructions above.
+
+### Netlify Deployment (Serverless)
+For serverless deployment to Netlify, see the [Netlify Deployment Guide](./NETLIFY_DEPLOYMENT.md).
+
+**Quick Netlify setup:**
+1. Push this repository to GitHub
+2. Connect to Netlify
+3. Set environment variables in Netlify dashboard
+4. Deploy!

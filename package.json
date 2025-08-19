@@ -21,7 +21,11 @@
     "dev": "DEV_MODE=true node ./index.js",
     "dev:watch": "DEV_MODE=true nodemon ./index.js",
     "prod": "NODE_ENV=production node ./index.js",
-    "start": "forever start -o ./sheets-proxy.log ./index.js"
+    "start": "forever start -o ./sheets-proxy.log ./index.js",
+    "build": "echo 'Build completed - static files ready'",
+    "netlify:dev": "netlify dev",
+    "netlify:deploy": "netlify deploy",
+    "netlify:deploy:prod": "netlify deploy --prod"
   },
   "author": "",
   "license": "MIT",
@@ -34,6 +38,7 @@
     "forever": "^4.0.3"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "netlify-cli": "^17.36.2"
   }
 }
