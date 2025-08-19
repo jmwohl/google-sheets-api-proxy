@@ -5,7 +5,7 @@
   "main": "index.js",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yourusername/google-sheets-api-proxy.git"
+    "url": "git+https://github.com/jmwohl/google-sheets-api-proxy.git"
   },
   "keywords": [
     "google-sheets",
