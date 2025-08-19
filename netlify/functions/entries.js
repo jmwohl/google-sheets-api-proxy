@@ -75,17 +75,26 @@ exports.handler = async (event, context) => {
         const {
             includeTimestamp = false,
             timestampColumn = 0,
-            valueInputOption = 'USER_ENTERED'
+            valueInputOption = 'USER_ENTERED',
+            timezone = 'America/Chicago'
         } = options;
 
         let rowData = [...data];
 
         // Add timestamp if requested
         if (includeTimestamp) {
-            // Use a human-readable but sortable timestamp: "YYYY-MM-DD HH:mm:ss"
+            // Create timestamp in the specified timezone (default: Chicago)
             const now = new Date();
-            const pad = n => n.toString().padStart(2, '0');
-            const timestamp = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())} ${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
+            const timestamp = now.toLocaleString('en-US', {
+                timeZone: timezone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
             rowData.splice(timestampColumn, 0, timestamp);
         }
 

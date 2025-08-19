@@ -148,6 +148,7 @@ POST /entries
 - `options` (optional): Additional options for the operation
   - `includeTimestamp`: Add current timestamp (default: false)
   - `timestampColumn`: Position for timestamp (0=beginning, -1=end, number=specific position)
+  - `timezone`: Timezone for timestamp (default: "America/Chicago")
   - `valueInputOption`: How to interpret input values (default: "USER_ENTERED")
 
 **Response:**
@@ -208,7 +209,24 @@ curl -X POST https://your-domain.com/entries \
     "data": ["Event", "Description", "Value"],
     "options": {
       "includeTimestamp": true,
-      "timestampColumn": 0
+      "timestampColumn": 0,
+      "timezone": "America/Chicago"
+    }
+  }'
+```
+
+### Adding an Entry with Different Timezone
+```bash
+curl -X POST https://your-domain.com/entries \
+  -H "Content-Type: application/json" \
+  -d '{
+    "spreadsheetId": "1ABC123...",
+    "sheetName": "DataLog",
+    "data": ["Event", "Description", "Value"],
+    "options": {
+      "includeTimestamp": true,
+      "timestampColumn": 0,
+      "timezone": "Europe/London"
     }
   }'
 ```

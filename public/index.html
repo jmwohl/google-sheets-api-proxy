@@ -57,6 +57,12 @@
             <li><code>sheetName</code> - The name of the sheet to write to</li>
             <li><code>data</code> - Array of values to add</li>
         </ul>
+        <p><strong>Optional parameters in options object:</strong></p>
+        <ul>
+            <li><code>includeTimestamp</code> - Add timestamp to row (default: false)</li>
+            <li><code>timestampColumn</code> - Column index for timestamp (default: 0)</li>
+            <li><code>timezone</code> - Timezone for timestamp (default: "America/Chicago")</li>
+        </ul>
     </div>
     
     <div class="endpoint">
@@ -87,7 +93,12 @@
   -d '{
     "spreadsheetId": "your-spreadsheet-id",
     "sheetName": "Sheet1",
-    "data": ["Value1", "Value2", "Value3"]
+    "data": ["Value1", "Value2", "Value3"],
+    "options": {
+      "includeTimestamp": true,
+      "timestampColumn": 0,
+      "timezone": "America/Chicago"
+    }
   }'</code></pre>
     
     <h2>Documentation</h2>

@@ -44,14 +44,26 @@ class GoogleSheetsService {
                 includeTimestamp = false,
                 timestampColumn = 0,
                 valueInputOption = 'USER_ENTERED',
-                range = null
+                range = null,
+                timezone = 'America/Chicago'
             } = options;
 
             let rowData = [...data];
 
             // Add timestamp if requested
             if (includeTimestamp) {
-                const timestamp = new Date().toISOString();
+                // Create timestamp in the specified timezone (default: Chicago)
+                const now = new Date();
+                const timestamp = now.toLocaleString('en-US', {
+                    timeZone: timezone,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    second: '2-digit',
+                    hour12: false
+                });
                 if (timestampColumn === 0) {
                     rowData.unshift(timestamp);
                 } else if (timestampColumn === -1) {
