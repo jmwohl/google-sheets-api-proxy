@@ -29,25 +29,32 @@
         }
         .method.post { background: #28a745; }
         .method.get { background: #007acc; }
+        .method.delete { background: #dc3545; }
         code {
             background: #f8f9fa;
             padding: 0.2rem 0.4rem;
             border-radius: 3px;
             font-family: 'Monaco', 'Consolas', monospace;
         }
+        pre {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+        }
     </style>
 </head>
 <body>
     <h1>🔗 Google Sheets API Proxy</h1>
-    <p>A generic REST API that serves as an intermediary for adding and retrieving entries from Google Sheets.</p>
-    
+    <p>A generic REST API that serves as an intermediary for adding, retrieving, and deleting entries from Google Sheets.</p>
+
     <h2>Available Endpoints</h2>
-    
+
     <div class="endpoint">
         <h3><span class="method get">GET</span> <code>/api/health</code></h3>
         <p>Health check endpoint to verify the service is running.</p>
     </div>
-    
+
     <div class="endpoint">
         <h3><span class="method post">POST</span> <code>/api/entries</code></h3>
         <p>Add entries to a Google Sheet.</p>
@@ -64,18 +71,35 @@
             <li><code>timezone</code> - Timezone for timestamp (default: "America/Chicago")</li>
         </ul>
     </div>
-    
+
     <div class="endpoint">
         <h3><span class="method get">GET</span> <code>/api/entries</code></h3>
         <p>Retrieve entries from a Google Sheet.</p>
-        <p><strong>Required parameters:</strong></p>
+        <p><strong>Required query parameters:</strong></p>
         <ul>
             <li><code>spreadsheetId</code> - The Google Spreadsheet ID</li>
             <li><code>sheetName</code> - The name of the sheet to read from</li>
-            <li><code>range</code> (optional) - Specific range to read</li>
+        </ul>
+        <p><strong>Optional query parameters:</strong></p>
+        <ul>
+            <li><code>includeHeader</code> - Include header row in response (default: true)</li>
+            <li><code>range</code> - Specific range to read (e.g., "A1:D20")</li>
+            <li><code>startRow</code> - Starting row number</li>
+            <li><code>endRow</code> - Ending row number</li>
         </ul>
     </div>
-    
+
+    <div class="endpoint">
+        <h3><span class="method delete">DELETE</span> <code>/api/entries</code></h3>
+        <p>Delete specific rows from a Google Sheet by row number.</p>
+        <p><strong>Required parameters:</strong></p>
+        <ul>
+            <li><code>spreadsheetId</code> - The Google Spreadsheet ID</li>
+            <li><code>sheetName</code> - The name of the sheet to delete from</li>
+            <li><code>rowNumbers</code> - Array of row numbers to delete (1-based indexing)</li>
+        </ul>
+    </div>
+
     <div class="endpoint">
         <h3><span class="method post">POST</span> <code>/api/sheets</code></h3>
         <p>Create a new sheet within an existing spreadsheet.</p>
@@ -85,9 +109,11 @@
             <li><code>sheetName</code> - The name for the new sheet</li>
         </ul>
     </div>
-    
-    <h2>Usage Example</h2>
+
+    <h2>Usage Examples</h2>
     <p>Replace <code>your-netlify-url.netlify.app</code> with your actual Netlify deployment URL:</p>
+
+    <h3>Add Entry (POST)</h3>
     <pre><code>curl -X POST https://your-netlify-url.netlify.app/api/entries \
   -H "Content-Type: application/json" \
   -d '{
@@ -100,7 +126,47 @@
       "timezone": "America/Chicago"
     }
   }'</code></pre>
-    
+
+    <h3>Get All Entries (GET)</h3>
+    <pre><code>curl "https://your-netlify-url.netlify.app/api/entries?spreadsheetId=your-spreadsheet-id&sheetName=Sheet1"</code></pre>
+
+    <h3>Get Entries Without Headers (GET)</h3>
+    <pre><code>curl "https://your-netlify-url.netlify.app/api/entries?spreadsheetId=your-spreadsheet-id&sheetName=Sheet1&includeHeader=false"</code></pre>
+
+    <h3>Get Specific Row Range (GET)</h3>
+    <pre><code>curl "https://your-netlify-url.netlify.app/api/entries?spreadsheetId=your-spreadsheet-id&sheetName=Sheet1&startRow=2&endRow=10"</code></pre>
+
+    <h3>Delete Rows (DELETE)</h3>
+    <pre><code>curl -X DELETE https://your-netlify-url.netlify.app/api/entries \
+  -H "Content-Type: application/json" \
+  -d '{
+    "spreadsheetId": "your-spreadsheet-id",
+    "sheetName": "Sheet1",
+    "rowNumbers": [3, 5, 7]
+  }'</code></pre>
+
+    <h2>Response Formats</h2>
+
+    <h3>GET Response</h3>
+    <pre><code>{
+  "success": true,
+  "headers": ["Name", "Email", "Date"],
+  "data": [
+    ["John Doe", "john@example.com", "2023-09-28"],
+    ["Jane Smith", "jane@example.com", "2023-09-29"]
+  ],
+  "totalRows": 2,
+  "range": "Sheet1!A1:Z3"
+}</code></pre>
+
+    <h3>DELETE Response</h3>
+    <pre><code>{
+  "success": true,
+  "deletedCount": 3,
+  "deletedRows": [3, 5, 7],
+  "message": "Successfully deleted 3 row(s): 3, 5, 7"
+}</code></pre>
+
     <h2>Documentation</h2>
     <p>For detailed setup instructions and API documentation, visit the <a href="https://github.com/jmwohl/google-sheets-api-proxy" target="_blank">GitHub repository</a>.</p>
 </body>
