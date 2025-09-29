@@ -35,12 +35,109 @@ async function initializeGoogleSheets() {
     }
 }
 
+// Function to get row data from Google Sheets
+async function getRowData(sheets, spreadsheetId, sheetName, options = {}) {
+    const { 
+        includeHeader = true, 
+        range = null,
+        startRow = null,
+        endRow = null 
+    } = options;
+
+    // Build the range string
+    let rangeString;
+    if (range) {
+        rangeString = `${sheetName}!${range}`;
+    } else if (startRow !== null && endRow !== null) {
+        rangeString = `${sheetName}!A${startRow}:Z${endRow}`;
+    } else if (startRow !== null) {
+        rangeString = `${sheetName}!A${startRow}:Z`;
+    } else {
+        rangeString = `${sheetName}!A:Z`;
+    }
+
+    const response = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range: rangeString
+    });
+
+    const rows = response.data.values || [];
+    
+    if (rows.length === 0) {
+        return {
+            headers: [],
+            data: [],
+            totalRows: 0,
+            message: 'No data found'
+        };
+    }
+
+    let headers = [];
+    let data = [];
+
+    if (includeHeader && rows.length > 0) {
+        headers = rows[0];
+        data = rows.slice(1);
+    } else {
+        data = rows;
+    }
+
+    return {
+        headers: includeHeader ? headers : null,
+        data,
+        totalRows: data.length,
+        range: response.data.range
+    };
+}
+
+// Function to delete rows by row number
+async function deleteRowsByNumber(sheets, spreadsheetId, sheetName, rowNumbers) {
+    // Get sheet ID for batch delete
+    const sheetMetadata = await sheets.spreadsheets.get({ spreadsheetId });
+    const sheet = sheetMetadata.data.sheets.find(s => s.properties.title === sheetName);
+    
+    if (!sheet) {
+        throw new Error(`Sheet "${sheetName}" not found`);
+    }
+    
+    const sheetId = sheet.properties.sheetId;
+
+    // Sort row numbers in descending order to maintain indices during deletion
+    const sortedRows = [...rowNumbers].sort((a, b) => b - a);
+
+    // Create delete requests
+    const deleteRequests = sortedRows.map(rowNumber => ({
+        deleteDimension: {
+            range: {
+                sheetId: sheetId,
+                dimension: 'ROWS',
+                startIndex: rowNumber - 1, // Convert to 0-based index
+                endIndex: rowNumber // End index is exclusive
+            }
+        }
+    }));
+
+    // Execute batch delete
+    await sheets.spreadsheets.batchUpdate({
+        spreadsheetId,
+        resource: {
+            requests: deleteRequests
+        }
+    });
+
+    return {
+        deletedCount: rowNumbers.length,
+        deletedRows: rowNumbers,
+        message: `Successfully deleted ${rowNumbers.length} row(s): ${rowNumbers.join(', ')}`
+    };
+}
+
 exports.handler = async (event, context) => {
     // Enable CORS
     const headers = {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Headers': 'Content-Type',
-        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Methods': 'GET, POST, DELETE, OPTIONS',
     };
 
     // Handle preflight requests
@@ -48,7 +145,7 @@ exports.handler = async (event, context) => {
         return { statusCode: 200, headers, body: '' };
     }
 
-    if (event.httpMethod !== 'POST') {
+    if (!['GET', 'POST', 'DELETE'].includes(event.httpMethod)) {
         return {
             statusCode: 405,
             headers,
@@ -58,16 +155,101 @@ exports.handler = async (event, context) => {
 
     try {
         const sheets = await initializeGoogleSheets();
+
+        // Handle GET requests
+        if (event.httpMethod === 'GET') {
+            const { spreadsheetId, sheetName, includeHeader, range, startRow, endRow } = event.queryStringParameters || {};
+
+            if (!spreadsheetId || !sheetName) {
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({
+                        error: 'Missing required query parameters: spreadsheetId and sheetName'
+                    })
+                };
+            }
+
+            const options = {
+                includeHeader: includeHeader !== 'false', // Default to true unless explicitly false
+                range: range || null,
+                startRow: startRow ? parseInt(startRow) : null,
+                endRow: endRow ? parseInt(endRow) : null
+            };
+
+            const result = await getRowData(sheets, spreadsheetId, sheetName, options);
+
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({
+                    success: true,
+                    ...result
+                })
+            };
+        }
+
+        // For POST and DELETE, get parameters from body
         const body = JSON.parse(event.body);
+        const { spreadsheetId, sheetName } = body;
 
-        const { spreadsheetId, sheetName, data, options = {} } = body;
-
-        if (!spreadsheetId || !sheetName || !data) {
+        if (!spreadsheetId || !sheetName) {
             return {
                 statusCode: 400,
                 headers,
                 body: JSON.stringify({
-                    error: 'Missing required parameters: spreadsheetId, sheetName, and data'
+                    error: 'Missing required parameters: spreadsheetId and sheetName'
+                })
+            };
+        }
+
+        // Handle DELETE requests
+        if (event.httpMethod === 'DELETE') {
+            const { rowNumbers } = body;
+
+            if (!rowNumbers || !Array.isArray(rowNumbers) || rowNumbers.length === 0) {
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({
+                        error: 'Missing or invalid rowNumbers parameter. Must be an array of row numbers.'
+                    })
+                };
+            }
+
+            // Validate row numbers
+            const invalidRows = rowNumbers.filter(row => !Number.isInteger(row) || row < 1);
+            if (invalidRows.length > 0) {
+                return {
+                    statusCode: 400,
+                    headers,
+                    body: JSON.stringify({
+                        error: `Invalid row numbers: ${invalidRows.join(', ')}. Row numbers must be positive integers.`
+                    })
+                };
+            }
+
+            const deleteResult = await deleteRowsByNumber(sheets, spreadsheetId, sheetName, rowNumbers);
+
+            return {
+                statusCode: 200,
+                headers,
+                body: JSON.stringify({
+                    success: true,
+                    ...deleteResult
+                })
+            };
+        }
+
+        // Handle POST requests (existing functionality)
+        const { data, options = {} } = body;
+
+        if (!data) {
+            return {
+                statusCode: 400,
+                headers,
+                body: JSON.stringify({
+                    error: 'Missing required parameter: data'
                 })
             };
         }
@@ -122,12 +304,12 @@ exports.handler = async (event, context) => {
         };
 
     } catch (error) {
-        console.error('Error adding entry:', error);
+        console.error('Error processing request:', error);
         return {
             statusCode: 500,
             headers,
             body: JSON.stringify({
-                error: 'Failed to add entry to sheet',
+                error: 'Failed to process request',
                 details: error.message
             })
         };
